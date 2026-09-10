@@ -185,3 +185,74 @@ Security must be considered from the beginning, including authentication, permis
 ### Scalability
 
 The project should remain simple initially. The preferred direction is a modular application that can later scale through workers, queues and horizontally scalable components rather than prematurely introducing a complex microservices architecture.
+
+
+## 4. Development Method
+
+The project is developed through small, reviewable tasks. Codex agents implement these tasks, but the repository — not the conversation history — is the persistent source of truth.
+
+### Project memory
+
+```text
+README.md                 Project overview
+AGENTS.md                 Instructions every Codex agent must follow
+docs/ARCHITECTURE.md      Current architecture
+docs/DECISIONS.md         Important decisions and their rationale
+docs/DEVELOPMENT.md       Detailed development conventions
+TODO.md                   High-level backlog / next steps
+
+docs/tasks/
+├── active/<task>.md      Persistent memory for an active task
+└── completed/<task>.md   Archived completed tasks
+```
+
+There is **no memory file per agent**. The agent is temporary; the task is persistent.
+
+A new Codex conversation can resume a task by reading:
+
+```text
+AGENTS.md
+    ↓
+relevant project documentation
+    ↓
+docs/tasks/active/<task>.md
+```
+
+Important knowledge discovered during a task must be written back to the repository:
+- task-specific information → the task file;
+- architectural changes → `ARCHITECTURE.md`;
+- important technical choices → `DECISIONS.md`.
+
+### Codex workflow
+
+Each Codex agent works on one bounded task.
+
+```text
+Define a small task
+        ↓
+Create docs/tasks/active/<task>.md
+        ↓
+Start a Codex conversation
+        ↓
+Codex reads AGENTS.md + relevant docs
+        ↓
+Codex creates a dedicated branch + worktree
+        ↓
+Implement + test the task
+        ↓
+Update task/docs if needed
+        ↓
+Human reviews and understands the diff
+        ↓
+CI validation
+        ↓
+Merge into main
+        ↓
+Move task file to completed/ and remove worktree
+```
+
+`main` should contain only reviewed and validated work.
+
+For significant architectural changes, Codex must explain the proposed change before implementing it.
+
+> **Principle:** Git, documentation and tests preserve project knowledge; Codex agents execute isolated, replaceable tasks.
